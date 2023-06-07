@@ -70,7 +70,9 @@ export class BasiliskDriver implements ServitorInferenceDriver, ServitorEmbeddin
         if (!res.ok) {
             throw new Error("inference failure");
         }
-        return res.json() as Promise<BasiliskInferenceResult>;
+        const result = await res.json() as Promise<BasiliskInferenceResult>;
+        console.debug("result", result);
+        return result;
     }
 
     async embed(

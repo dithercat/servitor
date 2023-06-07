@@ -59,7 +59,7 @@ const defaults: ServitorSimpleContextFormatterOptions = {
     thought_suffix: ")",
 
     message_line: "{prefix}{timestamp}{author_prefix}{author}{author_suffix} {content}{suffix}",
-    input_line: "{prefix}{timestamp}{author_prefix}{author}{author_suffix}{bos} {miniprompt}",
+    input_line: "{prefix}{timestamp}{author_prefix}{author}{author_suffix} {miniprompt}",
 
     bos: "\x02",
     eos: "\x03"
