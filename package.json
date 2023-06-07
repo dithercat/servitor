@@ -1,6 +1,6 @@
 {
   "name": "@dithercat/servitor",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "simple multiuser LLM chatbot framework",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
