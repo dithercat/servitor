@@ -1,6 +1,6 @@
 {
   "name": "@dithercat/servitor",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "simple multiuser LLM chatbot framework",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -8,6 +8,7 @@
   "author": "dither",
   "license": "BSD-2-Clause",
   "private": false,
+  "type": "module",
   "devDependencies": {
     "typescript": "^5.1.3"
   },
