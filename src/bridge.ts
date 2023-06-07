@@ -17,6 +17,8 @@ const HEADER_DIRECT = "the following is a real conversation between {char} and {
 const HEADER_TIMESTAMPS = "all timestamps are in {timezone}.";
 const HEADER_SUFFIX = " the conversation transcript continues for the remainder of this document without any other text.";
 
+const RECALL_TEMPLATE = "\n\nrecalled excerpt from previous conversation ({date}):\n{fragment}";
+
 const CONTEXT_TEMPLATE = "{prompt}{injected}\n\n{header}\n\n";
 
 export interface ServitorBridgeParameters {
@@ -52,7 +54,7 @@ export class ServitorBridge {
 
     constructor({
         char = "ASSISTANT",
-        timezone = "EST",
+        timezone = null,
         prompt = "",
         args = {},
         driver,
@@ -101,6 +103,9 @@ export class ServitorBridge {
         const header = line.channel.isprivate ?
             HEADER_DIRECT :
             HEADER_MULTIUSER;
+        const suffix = this.timezone != null ?
+            format(HEADER_TIMESTAMPS, { timezone: this.timezone }) + HEADER_SUFFIX :
+            HEADER_SUFFIX
 
         // normalize channel name
         const channel = "#" + this.formatter.normalize(line.channel.friendlyname);
@@ -113,7 +118,12 @@ export class ServitorBridge {
                 this.formatter.formatLine(line).trim()
             );
             if (doc != null && doc.length > 0) {
-                memories = doc.map(x=>`\n\nrecalled excerpt from previous conversation (${x[1].toDateString()}):\n${x[0]}`).join("\n\n");
+                memories = doc.map(x =>
+                    format(RECALL_TEMPLATE, {
+                        date: x[1].toDateString(),
+                        fragment: x[0]
+                    })
+                ).join("\n\n");
             }
         }
 
@@ -123,7 +133,7 @@ export class ServitorBridge {
                 char: this.char
             }),
             injected: memories, // TODO: ReAct stuff
-            header: format(header + HEADER_SUFFIX, {
+            header: format(header + suffix, {
                 char: this.char,
                 user: this.formatter.normalize(line.actor.friendlyname),
                 channel,
