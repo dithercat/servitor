@@ -1,3 +1,5 @@
+<img src="images/logo.png" width="256"/>
+
 # servitor
 
 stupid simple LLM chatbot framework (rewrite/cleanup of a private thing)
