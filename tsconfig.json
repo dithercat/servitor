@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "module": "esnext",
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "target": "es2021",
+        "moduleResolution": "node",
+        "declaration": true,
+        "rootDir": "src",
+        "outDir": "dist",
+        "checkJs": true,
+        "sourceMap": true,
+        "importsNotUsedAsValues": "remove"
+    },
+    "include": [
+        "src/**/*"
+    ]
+}
