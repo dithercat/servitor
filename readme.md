@@ -21,6 +21,7 @@ designed for multiuser chats
 
 ## todo
 
+- text-generation-webui driver
 - react pattern stuff (for search engines etc; i have a proof of concept in my
   old codebase, but im more focused on ironing everything else out at the
   moment)
