@@ -9,9 +9,11 @@ if you just want to make a discord LLM bot, see [ensata](https://github.com/dith
 ## features
 
 - swappable inference backend drivers
-  - currently the only in-tree driver is for
-    [basilisk](https://github.com/dithercat/basilisk), but writing a driver for
-    something else should be pretty easy (see `src/driver/base.ts`)
+  - currently supports [basilisk](https://github.com/dithercat/basilisk)
+  (recommended) and
+  [text-generation-webui](https://github.com/oobabooga/text-generation-webui)
+  - writing your own driver for something else should be pretty easy
+    (see `src/driver/base.ts`)
 - dynamic context reallocation
   - context is windowed to 2048 tokens (for LLaMA)
   - if some piece of information (such as long-term memory) is injected into the

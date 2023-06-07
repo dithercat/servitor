@@ -1,13 +1,12 @@
 import fetch from "node-fetch";
 
-import { ServitorEmbeddingDriver, ServitorInferenceDriver } from "../base.js";
-
 import {
-    BasiliskEmbedResult,
-    BasiliskInferenceArguments,
-    BasiliskInferenceResult,
-    BasiliskTokenizeResult
-} from "./api.js";
+    ServitorEmbeddingDriver, ServitorInferenceDriver,
+    ServitorEmbedResult,
+    ServitorInferenceArguments,
+    ServitorInferenceResult,
+    ServitorTokenizeResult
+} from "./base.js";
 
 export class BasiliskDriver implements ServitorInferenceDriver, ServitorEmbeddingDriver {
 
@@ -29,7 +28,7 @@ export class BasiliskDriver implements ServitorInferenceDriver, ServitorEmbeddin
         catch (ex) { return false; }
     }
 
-    async defaults(): Promise<Partial<BasiliskInferenceArguments>> {
+    async defaults(): Promise<Partial<ServitorInferenceArguments>> {
         const res = await fetch(this.endpoint + "config", {
             headers: {
                 "Content-Type": "application/json",
@@ -51,13 +50,13 @@ export class BasiliskDriver implements ServitorInferenceDriver, ServitorEmbeddin
         if (!res.ok) {
             throw new Error("tokenize failure");
         }
-        const result = await (res.json() as Promise<BasiliskTokenizeResult>);
+        const result = await (res.json() as Promise<ServitorTokenizeResult>);
         return result.tokens;
     }
 
     async infer(
-        params: Partial<BasiliskInferenceArguments>
-    ): Promise<BasiliskInferenceResult> {
+        params: Partial<ServitorInferenceArguments>
+    ): Promise<ServitorInferenceResult> {
         console.debug("infer", params);
         const res = await fetch(this.endpoint + "infer", {
             method: "POST",
@@ -70,7 +69,7 @@ export class BasiliskDriver implements ServitorInferenceDriver, ServitorEmbeddin
         if (!res.ok) {
             throw new Error("inference failure");
         }
-        const result = await res.json() as Promise<BasiliskInferenceResult>;
+        const result = await res.json() as Promise<ServitorInferenceResult>;
         console.debug("result", result);
         return result;
     }
@@ -89,7 +88,7 @@ export class BasiliskDriver implements ServitorInferenceDriver, ServitorEmbeddin
         if (!res.ok) {
             throw new Error("embed failure");
         }
-        const result = await (res.json() as Promise<BasiliskEmbedResult>);
+        const result = await (res.json() as Promise<ServitorEmbedResult>);
         return result.embedding;
     }
 

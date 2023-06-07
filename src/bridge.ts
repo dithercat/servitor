@@ -6,7 +6,7 @@ import {
     ServitorContextMemory
 } from "./context/index.js";
 import {
-    BasiliskInferenceArguments,
+    ServitorInferenceArguments,
     ServitorEmbeddingDriver,
     ServitorInferenceDriver
 } from "./driver/index.js";
@@ -25,7 +25,7 @@ export interface ServitorBridgeParameters {
     char?: string,
     timezone?: string,
     prompt?: string,
-    args?: Partial<BasiliskInferenceArguments>,
+    args?: Partial<ServitorInferenceArguments>,
     driver: {
         inference: ServitorInferenceDriver,
         embedding?: ServitorEmbeddingDriver
@@ -42,7 +42,7 @@ export class ServitorBridge {
     readonly char: string;
     readonly timezone: string;
     readonly prompt: string;
-    readonly args: Partial<BasiliskInferenceArguments>;
+    readonly args: Partial<ServitorInferenceArguments>;
 
     readonly inference: ServitorInferenceDriver;
     readonly embedding: ServitorEmbeddingDriver;
