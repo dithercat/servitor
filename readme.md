@@ -2,9 +2,9 @@
 
 # servitor
 
-stupid simple LLM chatbot framework (rewrite/cleanup of a private thing)
+stupid simple LLM chatbot framework designed for multiuser chats
 
-designed for multiuser chats
+if you just want to make a discord LLM bot, see [ensata](https://github.com/dithercat/ensata)
 
 ## features
 
