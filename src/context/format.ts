@@ -1,6 +1,6 @@
 import format from "string-format";
 
-import { ServitorChatLine } from "./log";
+import { ServitorChatLine } from "./log.js";
 
 export interface ServitorCleanedInference {
     content: string,

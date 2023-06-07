@@ -1,4 +1,4 @@
-import { BasiliskInferenceArguments, BasiliskInferenceResult } from "./basilisk/api";
+import { BasiliskInferenceArguments, BasiliskInferenceResult } from "./basilisk/api.js";
 
 export interface ServitorInferenceDriver {
     ping(): Promise<boolean>;

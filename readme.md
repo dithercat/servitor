@@ -15,6 +15,9 @@ designed for multiuser chats
   - if some piece of information (such as long-term memory) is injected into the
     context, then the conversation window shrinks to accomodate it and expands
     again once that information is removed
+- hacky internal monologue
+  - allows better planning of replies
+  - as a side-effect, creates some level of self-consistency for the simulacrum
 - vector memory (still ironing this out)
   - in-tree implementation is backed by
     [pgvector](https://github.com/pgvector/pgvector)

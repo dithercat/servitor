@@ -1,13 +1,13 @@
 import fetch from "node-fetch";
 
-import { ServitorEmbeddingDriver, ServitorInferenceDriver } from "../base";
+import { ServitorEmbeddingDriver, ServitorInferenceDriver } from "../base.js";
 
 import {
     BasiliskEmbedResult,
     BasiliskInferenceArguments,
     BasiliskInferenceResult,
     BasiliskTokenizeResult
-} from "./api";
+} from "./api.js";
 
 export class BasiliskDriver implements ServitorInferenceDriver, ServitorEmbeddingDriver {
 

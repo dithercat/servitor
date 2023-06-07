@@ -3,4 +3,4 @@ export interface ServitorVectorStore {
     retrieve(text: string, limit?: number): Promise<[string, Date][]>;
 }
 
-export * from "./postgres";
+export * from "./postgres.js";

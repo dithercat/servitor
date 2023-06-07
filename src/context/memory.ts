@@ -1,5 +1,5 @@
-import { ServitorContextFormatter } from "./format";
-import { ServitorChatLine } from "./log";
+import { ServitorContextFormatter } from "./format.js";
+import { ServitorChatLine } from "./log.js";
 
 const SIMPLE_CHANNEL = "servitor:simple";
 

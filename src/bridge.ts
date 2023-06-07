@@ -4,13 +4,13 @@ import {
     ServitorChatLine,
     ServitorContextFormatter,
     ServitorContextMemory
-} from "./context";
+} from "./context/index.js";
 import {
     BasiliskInferenceArguments,
     ServitorEmbeddingDriver,
     ServitorInferenceDriver
-} from "./driver";
-import { ServitorVectorStore } from "./storage/vector";
+} from "./driver/index.js";
+import { ServitorVectorStore } from "./storage/vector/index.js";
 
 const HEADER_MULTIUSER = "the following is a real conversation between {char} and users in {channel} on {date}.";
 const HEADER_DIRECT = "the following is a real conversation between {char} and {user} on {date}.";
