@@ -86,12 +86,9 @@ export class ServitorBridge {
         // insert into long-term memory if possible and desired
         if (longterm && this.embedding != null && this.vectors != null) {
             const win = this.context.getWindow(line.channel.id).slice(-3);
-            //console.debug(win);
             if (win.length === 3) {
                 const wins = win.map(x => this.formatter.formatLine(x))
                     .join("").trim();
-                //const embedding = await this.embedding.embed(wins[1].trim());
-                //const embedding = await this.embedding.embed(wins);
                 console.debug("MEMORY PUT");
                 await this.vectors.store(wins);
             }

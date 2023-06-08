@@ -60,7 +60,6 @@ export class TextgenDriver implements ServitorInferenceDriver {
     async infer(
         params: Partial<ServitorInferenceArguments>
     ): Promise<ServitorInferenceResult> {
-        console.debug("infer", params);
         params = Object.assign({}, defaults, params, {
             repetition_penalty: params.token_repetition_penalty_max,
 
@@ -81,7 +80,6 @@ export class TextgenDriver implements ServitorInferenceDriver {
             throw new Error("inference failure");
         }
         const result = await res.json() as any;
-        console.debug("result", result);
         const text = result.results[0].text;
         return { text, tokens: await this.tokenize(text) };
     }
