@@ -10,7 +10,9 @@ import {
     ServitorEmbeddingDriver,
     ServitorInferenceDriver
 } from "./driver/index.js";
-import { ServitorVectorStore } from "./storage/vector/index.js";
+import {
+    ServitorVectorStoreDriver
+} from "./storage/index.js";
 
 const HEADER_MULTIUSER = "the following is a real conversation between {char} and users in {channel} on {date}.";
 const HEADER_DIRECT = "the following is a real conversation between {char} and {user} on {date}.";
@@ -32,7 +34,7 @@ export interface ServitorBridgeParameters {
     },
     memory: {
         context: ServitorContextMemory,
-        vector?: ServitorVectorStore
+        vector?: ServitorVectorStoreDriver
     },
     formatter: ServitorContextFormatter
 }
@@ -48,7 +50,7 @@ export class ServitorBridge {
     readonly embedding: ServitorEmbeddingDriver;
 
     readonly context: ServitorContextMemory;
-    readonly vectors: ServitorVectorStore;
+    readonly vectors: ServitorVectorStoreDriver;
 
     readonly formatter: ServitorContextFormatter;
 

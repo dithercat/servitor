@@ -2,13 +2,13 @@ import { Sequelize, DataTypes, Model, ModelStatic } from 'sequelize';
 
 import { ServitorEmbeddingDriver } from '../../driver/index.js';
 
-import { ServitorVectorStore } from './index.js';
+import { ServitorVectorStoreDriver } from './index.js';
 import { registerType } from "./pgvector.js";
 registerType(Sequelize);
 
 const LIMIT = 512;
 
-export class ServitorPostgresVectorStore implements ServitorVectorStore {
+export class ServitorPostgresVectorStoreDriver implements ServitorVectorStoreDriver {
 
     sequelize: Sequelize;
     memory: ModelStatic<Model<any, any>>;
