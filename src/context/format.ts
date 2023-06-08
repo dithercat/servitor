@@ -11,8 +11,9 @@ export interface ServitorContextFormatter {
     normalize(name: string): string;
     normalizeName(name: string): string;
     formatLine(x: ServitorChatLine): string;
-    formatPrompt(name: string): string;
+    formatPrompt(author: string, miniprompt?: string, thought?: string): string;
     cleanInference(text: string): ServitorCleanedInference;
+    composeWithThought(content: string, thought: string): string;
 }
 
 export interface ServitorSimpleContextFormatterOptions {
@@ -121,7 +122,11 @@ export class ServitorSimpleContextFormatter implements ServitorContextFormatter 
         });
     }
 
-    formatPrompt(author: string, miniprompt: string = null): string {
+    formatPrompt(
+        author: string,
+        miniprompt: string = null,
+        thought: string = null
+    ): string {
         // get timestamp if wanted
         const timestamp = this.options.timestamps ?
             ("[" + this.getTime(new Date()) + "]") : "";
@@ -130,6 +135,9 @@ export class ServitorSimpleContextFormatter implements ServitorContextFormatter 
         if (miniprompt == null) {
             if (this.options.internal_monologue) {
                 miniprompt = this.options.thought_prefix;
+                if (thought != null) {
+                    miniprompt += ` ${thought}${this.options.thought_suffix}`;
+                }
             }
             else {
                 miniprompt = "";
@@ -149,6 +157,14 @@ export class ServitorSimpleContextFormatter implements ServitorContextFormatter 
         }).trimEnd();
     }
 
+    formatThought(thought: string): string {
+        return `${this.options.thought_prefix}${thought}${this.options.thought_suffix}`;
+    }
+
+    composeWithThought(content: string, thought: string): string {
+        return `${this.formatThought(thought)} ${content}`;
+    }
+
     cleanInference(content: string): ServitorCleanedInference {
         content = content.trim();
 
@@ -156,6 +172,9 @@ export class ServitorSimpleContextFormatter implements ServitorContextFormatter 
         var thought: string = null;
         if (this.options.internal_monologue) {
             // TODO: do this in a less naive way
+            if (content.startsWith(this.options.thought_prefix)) {
+                content = content.substring(this.options.thought_prefix.length);
+            }
             const thoughtend = content.indexOf(this.options.thought_suffix);
             thought = content.substring(0, thoughtend).trim();
             content = content.substring(thoughtend + 1).trim();

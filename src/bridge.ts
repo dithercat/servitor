@@ -151,13 +151,26 @@ export class ServitorBridge {
         const prompt = top + window + this.formatter.formatPrompt(this.char);
 
         // do inference
-        const result = await this.inference.infer(Object.assign({}, this.args, {
+        const args: Partial<ServitorInferenceArguments> = Object.assign({}, this.args, {
             prompt
-        }));
+        });
+        const result = await this.inference.infer(args);
+
+        // clean up
+        var { thought, content } = this.context.formatter.cleanInference(result.text);
+
+        // if no content was received, try to infer more
+        if (content.trim().length === 0) {
+            console.debug("did not get any message content, trying again");
+            args.prompt = top + window + this.formatter.formatPrompt(this.char, null, thought);
+            const result2 = await this.inference.infer(args);
+            content = result2.text;
+        }
 
         return this.context.generateSimple(
             this.char,
-            result.text, result.tokens,
+            this.context.formatter.composeWithThought(content, thought),
+            result.tokens,
             true
         );
     }
