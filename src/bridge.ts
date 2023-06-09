@@ -20,7 +20,7 @@ const HEADER_DIRECT = "the following is a real conversation between {char} and {
 const HEADER_TIMESTAMPS = "all timestamps are in {timezone}.";
 const HEADER_SUFFIX = " the conversation transcript continues for the remainder of this document without any other text.";
 
-const CONTEXT_TEMPLATE = "{prompt}{injected}\n\n{header}\n\n";
+const CONTEXT_TEMPLATE = "{prompt}{injected}\n\n\n{header}\n\n";
 
 const TOKEN_LIMIT = 2048;
 

@@ -10,7 +10,7 @@ import { getOrCreateWindow, windowHasDupe } from "../util.js";
 
 import { ServitorMemoryProvider } from "./base.js";
 
-const RECALL_TEMPLATE = "\n\nrecalled excerpt from previous conversation ({date}):\n{fragment}";
+const RECALL_TEMPLATE = "\n\n\nrecalled excerpt from previous conversation ({date}):\n\n{fragment}";
 
 export class ServitorVectorMemory implements ServitorMemoryProvider {
 
@@ -83,10 +83,12 @@ export class ServitorVectorMemory implements ServitorMemoryProvider {
         if (doc != null && doc.length > 0) {
             memories = doc.map(x =>
                 format(RECALL_TEMPLATE, {
-                    date: x[1].toDateString(),
-                    fragment: x[0]
+                    date: x.date.toDateString(),
+                    fragment: x.lines.map(x =>
+                        this.formatter.formatLine(x)
+                    ).join("").trim()
                 })
-            ).join("\n\n");
+            ).join("");
         }
 
         return memories;

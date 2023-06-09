@@ -57,7 +57,7 @@ export class BasiliskDriver implements ServitorInferenceDriver, ServitorEmbeddin
     async infer(
         params: Partial<ServitorInferenceArguments>
     ): Promise<ServitorInferenceResult> {
-        //console.debug(params.prompt);
+        console.debug(params.prompt);
         const res = await fetch(this.endpoint + "infer", {
             method: "POST",
             headers: {

@@ -68,7 +68,7 @@ export class ServitorPostgresVectorStoreDriver implements ServitorVectorStoreDri
         const items = await this.memory.findAll({
             // safe !!!
             order: [this.sequelize.literal(`embedding <=> '[${embedding}]'`)],
-            limit,
+            limit: limit || 1,
             // try not to waste context space on brand new entries
             where: {
                 updatedAt: { [Op.lt]: before },

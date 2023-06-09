@@ -97,10 +97,14 @@ export class ServitorSimpleContextFormatter implements ServitorContextFormatter 
         return name;
     }
 
+    formatTimestamp(date?: string) {
+        return this.options.timestamps ?
+            ("[" + this.getTime(date == null ? new Date() : new Date(date)) + "] ") : "";
+    }
+
     formatLine(x: ServitorChatLine): string {
         // get timestamp if wanted
-        const timestamp = this.options.timestamps ?
-            ("[" + this.getTime(new Date(x.message.timestamp)) + "]") : "";
+        const timestamp = this.formatTimestamp(x.message.timestamp);
 
         // normalize username
         const author = this.normalizeName(x.actor.friendlyname);
@@ -128,8 +132,7 @@ export class ServitorSimpleContextFormatter implements ServitorContextFormatter 
         thought: string = null
     ): string {
         // get timestamp if wanted
-        const timestamp = this.options.timestamps ?
-            ("[" + this.getTime(new Date()) + "]") : "";
+        const timestamp = this.formatTimestamp();
 
         // add thought miniprompt if needed
         if (miniprompt == null) {
