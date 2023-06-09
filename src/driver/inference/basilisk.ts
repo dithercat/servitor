@@ -57,6 +57,7 @@ export class BasiliskDriver implements ServitorInferenceDriver, ServitorEmbeddin
     async infer(
         params: Partial<ServitorInferenceArguments>
     ): Promise<ServitorInferenceResult> {
+        //console.debug(params.prompt);
         const res = await fetch(this.endpoint + "infer", {
             method: "POST",
             headers: {
@@ -72,9 +73,7 @@ export class BasiliskDriver implements ServitorInferenceDriver, ServitorEmbeddin
         return result;
     }
 
-    async embed(
-        prompt: string
-    ): Promise<number[]> {
+    async embed(prompt: string): Promise<number[]> {
         const res = await fetch(this.endpoint + "embed", {
             method: "POST",
             headers: {
@@ -88,6 +87,11 @@ export class BasiliskDriver implements ServitorInferenceDriver, ServitorEmbeddin
         }
         const result = await (res.json() as Promise<ServitorEmbedResult>);
         return result.embedding;
+    }
+
+    async dimensions(): Promise<number> {
+        const embedding = await this.embed("test");
+        return embedding.length;
     }
 
 }

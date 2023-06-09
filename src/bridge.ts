@@ -1,40 +1,38 @@
 import format from "string-format";
 
 import {
-    ServitorChatLine,
-    ServitorContextFormatter,
-    ServitorContextMemory
-} from "./context/index.js";
-import {
     ServitorInferenceArguments,
-    ServitorEmbeddingDriver,
     ServitorInferenceDriver
 } from "./driver/index.js";
 import {
-    ServitorVectorStoreDriver
-} from "./storage/index.js";
+    ServitorMemoryProvider
+} from "./memory/index.js";
+import {
+    ServitorContextFormatter
+} from "./format.js";
+import {
+    ServitorChatLine
+} from "./message.js";
+import { spoof } from "./util.js";
 
 const HEADER_MULTIUSER = "the following is a real conversation between {char} and users in {channel} on {date}.";
 const HEADER_DIRECT = "the following is a real conversation between {char} and {user} on {date}.";
 const HEADER_TIMESTAMPS = "all timestamps are in {timezone}.";
 const HEADER_SUFFIX = " the conversation transcript continues for the remainder of this document without any other text.";
 
-const RECALL_TEMPLATE = "\n\nrecalled excerpt from previous conversation ({date}):\n{fragment}";
-
 const CONTEXT_TEMPLATE = "{prompt}{injected}\n\n{header}\n\n";
+
+const TOKEN_LIMIT = 2048;
 
 export interface ServitorBridgeParameters {
     char?: string,
     timezone?: string,
     prompt?: string,
     args?: Partial<ServitorInferenceArguments>,
-    driver: {
-        inference: ServitorInferenceDriver,
-        embedding?: ServitorEmbeddingDriver
-    },
+    driver: ServitorInferenceDriver,
     memory: {
-        context: ServitorContextMemory,
-        vector?: ServitorVectorStoreDriver
+        shortterm: ServitorMemoryProvider,
+        longterm?: ServitorMemoryProvider[]
     },
     formatter: ServitorContextFormatter
 }
@@ -47,10 +45,9 @@ export class ServitorBridge {
     readonly args: Partial<ServitorInferenceArguments>;
 
     readonly inference: ServitorInferenceDriver;
-    readonly embedding: ServitorEmbeddingDriver;
 
-    readonly context: ServitorContextMemory;
-    readonly vectors: ServitorVectorStoreDriver;
+    readonly shortterm: ServitorMemoryProvider;
+    readonly longterm: ServitorMemoryProvider[];
 
     readonly formatter: ServitorContextFormatter;
 
@@ -68,31 +65,27 @@ export class ServitorBridge {
         this.prompt = prompt;
         this.args = args;
 
-        this.inference = driver.inference;
-        this.embedding = driver.embedding;
+        this.inference = driver;
 
-        this.context = memory.context;
-        this.vectors = memory.vector;
+        this.shortterm = memory.shortterm;
+        this.longterm = memory.longterm || [];
 
         this.formatter = formatter;
     }
 
-    async remember(line: ServitorChatLine, longterm = false): Promise<void> {
-        if (line.message.tokens.length === 0) {
-            line.message.tokens = await this.inference.tokenize(
-                this.formatter.formatLine(line)
-            );
-        }
-        this.context.insert(line);
+    async save(line: ServitorChatLine, longterm = false): Promise<void> {
+        // always retokenize to get final formatted length
+        line.message.tokens = await this.inference.tokenize(
+            this.formatter.formatLine(line)
+        );
 
-        // insert into long-term memory if possible and desired
-        if (longterm && this.embedding != null && this.vectors != null) {
-            const win = this.context.getWindow(line.channel.id).slice(-3);
-            if (win.length === 3) {
-                const wins = win.map(x => this.formatter.formatLine(x))
-                    .join("").trim();
-                console.debug("MEMORY PUT");
-                await this.vectors.store(wins);
+        // push to short-term memory
+        await this.shortterm.save(line);
+
+        // insert into long-term memories if possible and desired
+        if (longterm) {
+            for (const provider of this.longterm) {
+                await provider.save(line);
             }
         }
     }
@@ -110,20 +103,9 @@ export class ServitorBridge {
         const channel = "#" + this.formatter.normalize(line.channel.friendlyname);
 
         // do vector recall
-        var memories = "";
-        if (this.embedding != null && this.vectors != null) {
-            await this.embedding.embed(line.message.content);
-            const doc = await this.vectors.retrieve(
-                this.formatter.formatLine(line).trim()
-            );
-            if (doc != null && doc.length > 0) {
-                memories = doc.map(x =>
-                    format(RECALL_TEMPLATE, {
-                        date: x[1].toDateString(),
-                        fragment: x[0]
-                    })
-                ).join("\n\n");
-            }
+        const memory = [];
+        for (const provider of this.longterm) {
+            memory.push(await provider.recall(line));
         }
 
         // format header
@@ -131,7 +113,7 @@ export class ServitorBridge {
             prompt: format(this.prompt.trim(), {
                 char: this.char
             }),
-            injected: memories, // TODO: ReAct stuff
+            injected: memory.join(""), // TODO: ReAct stuff
             header: format(header + suffix, {
                 char: this.char,
                 user: this.formatter.normalize(line.actor.friendlyname),
@@ -148,30 +130,30 @@ export class ServitorBridge {
         }
 
         // build full body
-        const window = this.context.format(line.channel.id,
-            toptoks.length + this.args.max_new_tokens);
-        const prompt = top + window + this.formatter.formatPrompt(this.char);
+        const window = await this.shortterm.recall(line,
+            TOKEN_LIMIT - toptoks.length + this.args.max_new_tokens);
+        const context = top + window + this.formatter.formatInputLine(this.char);
 
         // do inference
         const args: Partial<ServitorInferenceArguments> = Object.assign({}, this.args, {
-            prompt
+            prompt: context
         });
         const result = await this.inference.infer(args);
 
         // clean up
-        var { thought, content } = this.context.formatter.cleanInference(result.text);
+        var { thought, content } = this.formatter.cleanInference(result.text);
 
         // if no content was received, try to infer more
         if (content.trim().length === 0) {
             console.debug("did not get any message content, trying again");
-            args.prompt = top + window + this.formatter.formatPrompt(this.char, null, thought);
+            args.prompt = top + window + this.formatter.formatInputLine(this.char, null, thought);
             const result2 = await this.inference.infer(args);
             content = result2.text;
         }
 
-        return this.context.generateSimple(
+        return spoof(
             this.char,
-            this.context.formatter.composeWithThought(content, thought),
+            this.formatter.composeWithThought(content, thought),
             result.tokens,
             true
         );

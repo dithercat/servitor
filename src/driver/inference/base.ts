@@ -69,4 +69,5 @@ export interface ServitorInferenceDriver {
 
 export interface ServitorEmbeddingDriver {
     embed(prompt: string): Promise<number[]>;
+    dimensions(): Promise<number>;
 }

@@ -4,6 +4,8 @@
 
 stupid simple LLM chatbot framework designed for multiuser chats
 
+currently extremely unstable and not really ready for use
+
 if you just want to make a discord LLM bot, see [ensata](https://github.com/dithercat/ensata)
 
 ## features
@@ -23,13 +25,6 @@ if you just want to make a discord LLM bot, see [ensata](https://github.com/dith
   - as a side-effect, creates some level of self-consistency for the simulacrum
 - vector memory (still ironing this out)
   - in-tree implementation is backed by [pgvector](https://github.com/pgvector/pgvector)
-
-## components
-
-- `driver` - inference/embedding driver code
-- `context` - chat context management
-- `storage` - long-term memory stuff (currently only vector memory)
-- `bridge` - evil god object that ties everything together
 
 ## faq
 

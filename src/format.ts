@@ -1,6 +1,6 @@
 import format from "string-format";
 
-import { ServitorChatLine } from "./log.js";
+import { ServitorChatLine } from "./message.js";
 
 export interface ServitorCleanedInference {
     content: string,
@@ -11,7 +11,7 @@ export interface ServitorContextFormatter {
     normalize(name: string): string;
     normalizeName(name: string): string;
     formatLine(x: ServitorChatLine): string;
-    formatPrompt(author: string, miniprompt?: string, thought?: string): string;
+    formatInputLine(author: string, miniprompt?: string, thought?: string): string;
     cleanInference(text: string): ServitorCleanedInference;
     composeWithThought(content: string, thought: string): string;
 }
@@ -122,7 +122,7 @@ export class ServitorSimpleContextFormatter implements ServitorContextFormatter 
         });
     }
 
-    formatPrompt(
+    formatInputLine(
         author: string,
         miniprompt: string = null,
         thought: string = null
@@ -158,7 +158,7 @@ export class ServitorSimpleContextFormatter implements ServitorContextFormatter 
     }
 
     formatThought(thought: string): string {
-        return `${this.options.thought_prefix}${thought}${this.options.thought_suffix}`;
+        return `${this.options.thought_prefix} ${thought}${this.options.thought_suffix}`;
     }
 
     composeWithThought(content: string, thought: string): string {
