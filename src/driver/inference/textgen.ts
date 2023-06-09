@@ -5,22 +5,7 @@ import {
     ServitorInferenceArguments,
     ServitorInferenceResult
 } from "./base.js";
-
-const defaults: Partial<ServitorInferenceArguments> = {
-    temperature: 0.5,
-    top_k: 32,
-    top_p: 0.2,
-    min_p: 0,
-    token_repetition_penalty_max: 1.1,
-    token_repetition_penalty_sustain: 2048,
-    token_repetition_penalty_decay: 0,
-    min_length: 4,
-    max_new_tokens: 256,
-    stopping_strings: ["\n"],
-    positional_repetition_penalty: 0,
-    positional_repeat_inhibit: [],
-    special_convert: false
-};
+import { defaults } from "./defaults.js";
 
 export class TextgenDriver implements ServitorInferenceDriver {
 
@@ -28,8 +13,8 @@ export class TextgenDriver implements ServitorInferenceDriver {
         private readonly endpoint: string = "http://127.0.0.1:5000/api/v1/"
     ) { }
 
+    // TODO
     async ping(): Promise<boolean> {
-        // TODO: some ugly hack
         return true;
     }
 
@@ -37,7 +22,6 @@ export class TextgenDriver implements ServitorInferenceDriver {
         return defaults;
     }
 
-    // !!! FAKE !!!
     // this can only be used to count length!
     async tokenize(prompt: string): Promise<number[]> {
         const res = await fetch(this.endpoint + "token-count", {
@@ -61,6 +45,9 @@ export class TextgenDriver implements ServitorInferenceDriver {
         params: Partial<ServitorInferenceArguments>
     ): Promise<ServitorInferenceResult> {
         params = Object.assign({}, defaults, params, {
+            prompt: params.prompt
+                .replace(/\x03/g, "</s>")
+                .replace(/\x02/g, ""),
             repetition_penalty: params.token_repetition_penalty_max,
 
             length_penalty: 0,

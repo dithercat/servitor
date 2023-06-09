@@ -11,8 +11,10 @@ if you just want to make a discord LLM bot, see [ensata](https://github.com/dith
 ## features
 
 - swappable inference backend drivers
-  - currently supports [basilisk](https://github.com/dithercat/basilisk)
-  (recommended) and [text-generation-webui](https://github.com/oobabooga/text-generation-webui)
+  - [basilisk](https://github.com/dithercat/basilisk) (recommended)
+  - [text-generation-webui](https://github.com/oobabooga/text-generation-webui)
+    and compatible API services (incomplete, does not support embeddings)
+  - OpenAI-compatible API services (incomplete)
   - writing your own driver for something else should be pretty easy
     (see `src/driver/base.ts`)
 - dynamic context reallocation
@@ -24,7 +26,8 @@ if you just want to make a discord LLM bot, see [ensata](https://github.com/dith
   - allows better planning of replies
   - as a side-effect, creates some level of self-consistency for the simulacrum
 - vector memory (still ironing this out)
-  - in-tree implementation is backed by [pgvector](https://github.com/pgvector/pgvector)
+  - persistent driver backed by [pgvector](https://github.com/pgvector/pgvector)
+  - simple in-memory driver
 
 ## faq
 
