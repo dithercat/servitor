@@ -131,7 +131,7 @@ export class ServitorBridge {
 
         // build full body
         const window = await this.shortterm.recall(line,
-            TOKEN_LIMIT - toptoks.length + this.args.max_new_tokens);
+            TOKEN_LIMIT - (toptoks.length + this.args.max_new_tokens));
         const context = top + window + this.formatter.formatInputLine(this.char);
 
         // do inference
