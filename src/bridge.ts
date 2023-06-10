@@ -121,7 +121,8 @@ export class ServitorBridge {
                 date: new Date().toDateString()
             })
         });
-        const toptoks = await this.inference.tokenize(top);
+        const input = this.formatter.formatInputLine(this.char);
+        const toptoks = await this.inference.tokenize(top + input);
 
         if (this.args.max_new_tokens == null) {
             // have to ask inference server about its defaults
@@ -132,7 +133,7 @@ export class ServitorBridge {
         // build full body
         const window = await this.shortterm.recall(line,
             TOKEN_LIMIT - (toptoks.length + this.args.max_new_tokens));
-        const context = top + window + this.formatter.formatInputLine(this.char);
+        const context = top + window + input;
 
         // do inference
         const args: Partial<ServitorInferenceArguments> = Object.assign({}, this.args, {
