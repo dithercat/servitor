@@ -28,6 +28,9 @@ export interface ServitorMessageInfo {
     // message tokens
     tokens: number[];
 
+    // raw content tokens
+    tokens_raw: number[];
+
     // ISO timestamp
     timestamp?: string;
 }

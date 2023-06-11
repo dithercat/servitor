@@ -6,15 +6,22 @@ stupid simple LLM chatbot framework designed for multiuser chats
 
 currently extremely unstable and not really ready for use
 
-if you just want to make a discord LLM bot, see [ensata](https://github.com/dithercat/ensata)
+if you just want to make a discord LLM bot, see
+[ensata](https://github.com/dithercat/ensata), the reference implementation of
+servitor
 
 ## features
 
-- swappable inference backend drivers
+- interchangeable inference/embedding drivers
   - [basilisk](https://github.com/dithercat/basilisk) (recommended)
+    - developed in parallel with servitor and supports all the features it uses
   - [text-generation-webui](https://github.com/oobabooga/text-generation-webui)
-    and compatible API services (incomplete, does not support embeddings)
+    and compatible API services (incomplete)
+    - does not natively support embeddings, which are required for long-term
+      memory
   - OpenAI-compatible API services (incomplete)
+    - does not currently support token counting, resulting in inefficient
+      context space allocation
   - writing your own driver for something else should be pretty easy
     (see `src/driver/base.ts`)
 - dynamic context reallocation
@@ -22,7 +29,7 @@ if you just want to make a discord LLM bot, see [ensata](https://github.com/dith
   - if some piece of information (such as long-term memory) is injected into the
     context, then the conversation window shrinks to accomodate it and expands
     again once that information is removed
-- hacky internal monologue
+- universal internal monologue system
   - allows better planning of replies
   - as a side-effect, creates some level of self-consistency for the simulacrum
 - vector memory (still ironing this out)

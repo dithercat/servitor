@@ -1,18 +1,52 @@
-import { ServitorContextFormatter } from "../format.js";
-import { ServitorChatLine } from "../message.js";
-import { getOrCreateWindow, slideWindow, windowHasDupe } from "../util.js";
+import format from "string-format";
 
-import { ServitorMemoryProvider } from "./base.js";
+import { ServitorAgentDescriptor } from "../../character.js";
+import { ServitorContextFormatter } from "../../format.js";
+import { ServitorChatLine } from "../../message.js";
+import { getOrCreateWindow, slideWindow, windowHasDupe } from "../../util.js";
 
-export class ServitorWindowMemory implements ServitorMemoryProvider {
+import { ServitorMemoryProvider } from "../base.js";
+
+function timeOfDay() {
+    const date = new Date();
+    const hr = date.getHours();
+    if (hr < 12) return "morning";
+    if (hr < 12 + 6) return "afternoon";
+    return "evening";
+}
+
+export class ServitorConversationWindowMemory implements ServitorMemoryProvider {
 
     readonly buffers = new Map<string, ServitorChatLine[]>();
 
     constructor(
-        readonly formatter: ServitorContextFormatter
+        readonly formatter: ServitorContextFormatter,
+        readonly agent?: ServitorAgentDescriptor
     ) { }
 
-    protected _warmupChannel(ring: ServitorChatLine[]): void { }
+    protected _warmupChannel(ring: ServitorChatLine[]): void {
+        if (this.agent != null && this.agent.warmup != null) {
+            ring.push({
+                actor: {
+                    friendlyname: this.agent.name,
+                    self: true
+                },
+                channel: null,
+                message: {
+                    id: "intro",
+                    content: this.formatter.composeWithThought(
+                        format(this.agent.warmup.response, {
+                            timeofday: timeOfDay()
+                        }),
+                        this.agent.warmup.thought
+                    ),
+                    tokens: [],
+                    tokens_raw: [],
+                    timestamp: new Date().toISOString()
+                }
+            });
+        }
+    }
 
     async save(line: ServitorChatLine): Promise<void> {
         const id = line.channel.id;
@@ -60,6 +94,15 @@ export class ServitorWindowMemory implements ServitorMemoryProvider {
         return 0;
     }
 
+    getRoles(channel: string): string[] {
+        if (this.buffers.has(channel)) {
+            const msgs = this.buffers.get(channel)
+                .map(x => this.formatter.normalizeName(x.actor.friendlyname))
+            return Array.from(new Set(msgs));
+        }
+        return [];
+    }
+
     async recall(line: ServitorChatLine, tokens = 2048): Promise<string> {
         // get buffer
         if (!this.buffers.has(line.channel.id)) {
@@ -77,5 +120,5 @@ export class ServitorWindowMemory implements ServitorMemoryProvider {
         }
         return lines.join("");
     }
-    
+
 }

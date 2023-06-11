@@ -3,16 +3,16 @@ import format from "string-format";
 import {
     ServitorEmbeddingDriver,
     ServitorVectorStoreDriver
-} from "../driver/index.js";
-import { ServitorContextFormatter } from "../format.js";
-import { ServitorChatLine } from "../message.js";
-import { getOrCreateWindow, windowHasDupe } from "../util.js";
+} from "../../driver/index.js";
+import { ServitorContextFormatter } from "../../format.js";
+import { ServitorChatLine } from "../../message.js";
+import { getOrCreateWindow, windowHasDupe } from "../../util.js";
 
-import { ServitorMemoryProvider } from "./base.js";
+import { ServitorMemoryProvider } from "./../base.js";
 
-const RECALL_TEMPLATE = "\n\n\nrecalled excerpt from previous conversation ({date}):\n\n{fragment}";
+const RECALL_TEMPLATE = "\n\n\nrecalled excerpt from previous conversation on {date}:\n\n{fragment}";
 
-export class ServitorVectorMemory implements ServitorMemoryProvider {
+export class ServitorConversationVectorMemory implements ServitorMemoryProvider {
 
     readonly buffers = new Map<string, ServitorChatLine[]>();
 

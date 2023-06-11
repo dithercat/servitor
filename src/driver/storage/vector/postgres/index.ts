@@ -16,16 +16,16 @@ export class ServitorPostgresVectorStoreDriver implements ServitorVectorStoreDri
     memory: ModelStatic<Model<any, any>>;
 
     constructor(
-        //readonly driver: ServitorEmbeddingDriver,
         db: string,
-        private readonly dims: number
+        private readonly dims: number,
+        private readonly table: string = "vectors"
     ) {
         this.sequelize = new Sequelize(db);
     }
 
     async init(): Promise<void> {
         // actually define the model
-        this.memory = this.sequelize.define('vector_memory', {
+        this.memory = this.sequelize.define("servitor_" + this.table, {
             id: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,

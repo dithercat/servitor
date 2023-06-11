@@ -15,7 +15,9 @@ export function spoof(
         },
         message: {
             id: (_sinsert++).toString(),
-            content, tokens
+            content,
+            tokens,
+            tokens_raw: tokens
         }
     };
 }
@@ -23,7 +25,7 @@ export function spoof(
 export function getWindowSize(buffer: ServitorChatLine[]): number {
     var t = 0;
     for (var i = 0; i < buffer.length; i++) {
-        t += buffer[i].message.tokens.length;
+        t += buffer[i].message.tokens.length + 2;
     }
     return t;
 }

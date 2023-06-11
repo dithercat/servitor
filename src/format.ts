@@ -165,6 +165,9 @@ export class ServitorSimpleContextFormatter implements ServitorContextFormatter 
     }
 
     composeWithThought(content: string, thought: string): string {
+        if (!this.options.internal_monologue) {
+            return content;
+        }
         return `${this.formatThought(thought)} ${content}`;
     }
 
