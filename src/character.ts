@@ -25,5 +25,9 @@ export interface ServitorAgentDescriptor {
     // may or may not be utilized by the preconditioning
     pronouns: ServitorPronounDescriptor,
     // warmup to use
-    warmup?: ServitorWarmupDescriptor
+    warmup?: ServitorWarmupDescriptor,
+    // employ capitalization countermeasures
+    // (most instruct models get stuck capitalizing things sometimes even if the 
+    //  character isnt supposed to)
+    decapitalize?: boolean
 }

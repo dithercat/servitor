@@ -8,11 +8,11 @@ import { ServitorContextFormatter } from "../../format.js";
 import { ServitorChatLine } from "../../message.js";
 import { getOrCreateWindow, windowHasDupe } from "../../util.js";
 
-import { ServitorMemoryProvider } from "./../base.js";
+import { ServitorMemory } from "./../base.js";
 
-const RECALL_TEMPLATE = "\n\n\nrecalled excerpt from previous conversation on {date}:\n\n{fragment}";
+const RECALL_TEMPLATE = "recalled excerpt from previous conversation on {date}:\n\n{fragment}";
 
-export class ServitorConversationVectorMemory implements ServitorMemoryProvider {
+export class ServitorConversationVectorMemory implements ServitorMemory {
 
     readonly buffers = new Map<string, ServitorChatLine[]>();
 

@@ -67,3 +67,12 @@ export function windowHasDupe(
     }
     return false;
 }
+
+export function decapitalize(text: string) {
+    // guess that there's a codeblock present if there are any `s
+    // and if so, skip decapitalizing
+    if (text.match(/`/)) { return text; }
+    // eliminate capitalized words
+    return text.replace(/\b([A-Z])([a-z]+?)?\b/g, (match, start, rest = "") =>
+        start.toLowerCase() + rest);
+}

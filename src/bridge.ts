@@ -12,12 +12,13 @@ import {
 } from "./format.js";
 import {
     ServitorConversationWindowMemory,
-    ServitorMemoryProvider
+    ServitorMemory
 } from "./memory/index.js";
 import {
     ServitorChatLine
 } from "./message.js";
 import {
+    decapitalize,
     spoof
 } from "./util.js";
 
@@ -30,7 +31,7 @@ const CONTEXT_TEMPLATE = "{prompt}{injected}\n\n\n{header}\n\n";
 
 const TOKEN_LIMIT = 2048;
 
-export interface ServitorBridgeParameters {
+export interface ServitorBridgeArguments {
     agent?: Partial<ServitorAgentDescriptor>,
     baseprompt?: string,
     timezone?: string,
@@ -38,7 +39,7 @@ export interface ServitorBridgeParameters {
     driver: ServitorInferenceDriver,
     memory: {
         shortterm: ServitorConversationWindowMemory,
-        longterm?: ServitorMemoryProvider[]
+        longterm?: ServitorMemory[]
     },
     formatter: ServitorContextFormatter
 }
@@ -56,7 +57,8 @@ const default_agent: ServitorAgentDescriptor = {
     warmup: {
         thought: "I am now online.",
         response: "Hello! How may I assist you today?"
-    }
+    },
+    decapitalize: false
 }
 
 export class ServitorBridge {
@@ -70,7 +72,7 @@ export class ServitorBridge {
     readonly inference: ServitorInferenceDriver;
 
     readonly shortterm: ServitorConversationWindowMemory;
-    readonly longterm: ServitorMemoryProvider[];
+    readonly longterm: ServitorMemory[];
 
     readonly formatter: ServitorContextFormatter;
 
@@ -82,7 +84,7 @@ export class ServitorBridge {
         driver,
         memory,
         formatter
-    }: ServitorBridgeParameters) {
+    }: ServitorBridgeArguments) {
         this.agent = Object.assign({}, default_agent, agent);
         this.baseprompt = baseprompt;
 
@@ -152,7 +154,7 @@ export class ServitorBridge {
             format(this.agent.extra, formatparams) + "\n\n" : "";
         const top = format(CONTEXT_TEMPLATE, {
             prompt: format(this.baseprompt.trim(), formatparams),
-            injected: memory.join(""), // TODO: ReAct stuff
+            injected: "\n\n\n" + memory.join("\n\n\n"),
             header: format(header + suffix, {
                 char: this.agent.name,
                 name: this.agent.name,
@@ -204,6 +206,11 @@ export class ServitorBridge {
         content = content
             // malformation: kill trailing closing parentheses
             .replace(/(^[^\(]+?[\w.?!])\)/, "$1");
+
+        if (this.agent.decapitalize) {
+            thought = decapitalize(thought);
+            content = decapitalize(content);
+        }
 
         return spoof(
             this.agent.name,

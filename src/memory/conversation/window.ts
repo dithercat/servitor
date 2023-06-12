@@ -5,7 +5,7 @@ import { ServitorContextFormatter } from "../../format.js";
 import { ServitorChatLine } from "../../message.js";
 import { getOrCreateWindow, slideWindow, windowHasDupe } from "../../util.js";
 
-import { ServitorMemoryProvider } from "../base.js";
+import { ServitorMemory } from "../base.js";
 
 function timeOfDay() {
     const date = new Date();
@@ -15,7 +15,7 @@ function timeOfDay() {
     return "evening";
 }
 
-export class ServitorConversationWindowMemory implements ServitorMemoryProvider {
+export class ServitorConversationWindowMemory implements ServitorMemory {
 
     readonly buffers = new Map<string, ServitorChatLine[]>();
 
