@@ -75,7 +75,11 @@ if you insist on giving OpenAI money, export GPT_ME_HARDER=1 to bypass this erro
         const tokens: number[] = [];
         for (var i = 0; i < result.data.usage.completion_tokens; i++) { tokens.push(0); }
 
-        return { text: result.data.choices[0].text, tokens };
+        return {
+            text: result.data.choices[0].text,
+            tokens,
+            stop_reason: -1
+        };
     }
 
     async embed(prompt: string): Promise<number[]> {

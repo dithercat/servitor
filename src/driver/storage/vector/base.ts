@@ -13,6 +13,7 @@ export interface ServitorVectorStoreDriver {
     ): Promise<void>;
     retrieve(
         embedding: number[],
+        channel: string,
         limit?: number,
         maxtoks?: number,
         before?: Date

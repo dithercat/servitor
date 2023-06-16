@@ -35,6 +35,10 @@ export class ServitorPostgresVectorStoreDriver implements ServitorVectorStoreDri
                 type: DataTypes["VECTOR"](this.dims),
                 allowNull: false
             },
+            channel: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
             tokens: {
                 type: DataTypes.INTEGER,
                 allowNull: false
@@ -56,11 +60,17 @@ export class ServitorPostgresVectorStoreDriver implements ServitorVectorStoreDri
     ): Promise<void> {
         var tokens = 0;
         for (const line of lines) { tokens += line.message.tokens.length; }
-        await this.memory.create({ embedding, tokens, lines });
+        await this.memory.create({
+            embedding,
+            channel: lines[lines.length - 1].channel.id,
+            tokens,
+            lines
+        });
     }
 
     async retrieve(
         embedding: number[],
+        channel: string,
         limit?: number,
         maxtoks?: number,
         before?: Date
@@ -71,7 +81,10 @@ export class ServitorPostgresVectorStoreDriver implements ServitorVectorStoreDri
             limit: limit || 1,
             // try not to waste context space on brand new entries
             where: {
-                updatedAt: { [Op.lt]: before },
+                [Op.or]: {
+                    updatedAt: { [Op.lt]: before },
+                    channel: { [Op.ne]: channel }
+                },
                 tokens: { [Op.lt]: maxtoks }
             }
         });

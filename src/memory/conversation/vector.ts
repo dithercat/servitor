@@ -48,10 +48,10 @@ export class ServitorConversationVectorMemory implements ServitorMemory {
                 view.shift();
             }
 
-            // create embedding from view
-            const doc = view.map(x => this.formatter.formatLine(x))
-                .join("").trim();
-            const embedding = await this.embed.embed(doc);
+            // create embedding from second to last message
+            const embedding = await this.embed.embed(
+                this.formatter.formatLine(view[view.length - 2]).trim()
+            );
 
             // commit to database
             await this.storage.store(view, embedding);
@@ -77,7 +77,13 @@ export class ServitorConversationVectorMemory implements ServitorMemory {
         );
 
         // retrieve most salient fragment
-        const doc = await this.storage.retrieve(embedding, 1, tokens, date);
+        const doc = await this.storage.retrieve(
+            embedding,
+            line.channel.id,
+            1,
+            tokens,
+            date
+        );
 
         // if we got something, format it in
         if (doc != null && doc.length > 0) {

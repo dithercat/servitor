@@ -7,16 +7,7 @@ export interface ServitorCleanedInference {
     thought?: string
 }
 
-export interface ServitorContextFormatter {
-    normalize(name: string): string;
-    normalizeName(name: string): string;
-    formatLine(x: ServitorChatLine): string;
-    formatInputLine(author: string, miniprompt?: string, thought?: string): string;
-    cleanInference(text: string): ServitorCleanedInference;
-    composeWithThought(content: string, thought: string): string;
-}
-
-export interface ServitorSimpleContextFormatterOptions {
+export interface ServitorContextFormatterOptions {
     name_normalize: boolean,
     name_capitalize: boolean,
 
@@ -41,7 +32,7 @@ export interface ServitorSimpleContextFormatterOptions {
     eos: string
 }
 
-const defaults: ServitorSimpleContextFormatterOptions = {
+const defaults: ServitorContextFormatterOptions = {
     name_normalize: true,
     name_capitalize: true,
 
@@ -66,10 +57,10 @@ const defaults: ServitorSimpleContextFormatterOptions = {
     eos: "\x03"
 }
 
-export class ServitorSimpleContextFormatter implements ServitorContextFormatter {
-    readonly options: ServitorSimpleContextFormatterOptions;
+export class ServitorContextFormatter {
+    readonly options: Readonly<ServitorContextFormatterOptions>;
 
-    constructor(options: Partial<ServitorSimpleContextFormatterOptions> = {}) {
+    constructor(options: Partial<ServitorContextFormatterOptions> = {}) {
         this.options = Object.assign({}, defaults, options);
     }
 
@@ -182,8 +173,14 @@ export class ServitorSimpleContextFormatter implements ServitorContextFormatter 
                 content = content.substring(this.options.thought_prefix.length);
             }
             const thoughtend = content.indexOf(this.options.thought_suffix);
-            thought = content.substring(0, thoughtend).trim();
-            content = content.substring(thoughtend + 1).trim();
+            if (thoughtend === -1) {
+                thought = content.trim();
+                content = "";
+            }
+            else {
+                thought = content.substring(0, thoughtend).trim();
+                content = content.substring(thoughtend + 1).trim();
+            }
         }
 
         return { content, thought };

@@ -68,7 +68,11 @@ export class TextgenDriver implements ServitorInferenceDriver {
         }
         const result = await res.json() as any;
         const text = result.results[0].text;
-        return { text, tokens: await this.tokenize(text) };
+        return {
+            text,
+            tokens: await this.tokenize(text),
+            stop_reason: -1
+        };
     }
 
 }

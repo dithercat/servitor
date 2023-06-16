@@ -22,6 +22,13 @@ export interface ServitorTokenizeResult {
     fragments: string[]
 }
 
+export enum ServitorInferenceStopReason {
+    Unknown = -1,
+    TokenLimit = 0,
+    EOS = 1,
+    StoppingString = 2
+}
+
 export interface ServitorInferenceArguments {
     prompt: string,
 
@@ -57,7 +64,9 @@ export interface ServitorInferenceArguments {
 
 export interface ServitorInferenceResult {
     text: string,
-    tokens: number[]
+    tokens: number[],
+    fragments?: string[],
+    stop_reason: ServitorInferenceStopReason
 }
 
 export interface ServitorInferenceDriver {

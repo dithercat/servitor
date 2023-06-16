@@ -5,7 +5,8 @@ import {
 } from "./character.js";
 import {
     ServitorInferenceArguments,
-    ServitorInferenceDriver
+    ServitorInferenceDriver,
+    ServitorInferenceStopReason
 } from "./driver/index.js";
 import {
     ServitorContextFormatter
@@ -36,6 +37,7 @@ export interface ServitorBridgeArguments {
     baseprompt?: string,
     timezone?: string,
     args?: Partial<ServitorInferenceArguments>,
+    max_tries?: number,
     driver: ServitorInferenceDriver,
     memory: {
         shortterm: ServitorConversationWindowMemory,
@@ -68,6 +70,7 @@ export class ServitorBridge {
 
     readonly timezone: string;
     readonly args: Partial<ServitorInferenceArguments>;
+    readonly maxtries: number;
 
     readonly inference: ServitorInferenceDriver;
 
@@ -81,6 +84,7 @@ export class ServitorBridge {
         baseprompt = "",
         timezone = null,
         args = {},
+        max_tries = 2,
         driver,
         memory,
         formatter
@@ -90,6 +94,7 @@ export class ServitorBridge {
 
         this.timezone = timezone;
         this.args = args;
+        this.maxtries = max_tries;
 
         this.inference = driver;
 
@@ -119,7 +124,7 @@ export class ServitorBridge {
         }
     }
 
-    async infer(line: ServitorChatLine): Promise<ServitorChatLine> {
+    async assembleContext(line: ServitorChatLine, thought?: string, trail: string = "") {
         // select appropriate header template
         const header = line.channel.isprivate ?
             HEADER_DIRECT :
@@ -134,7 +139,10 @@ export class ServitorBridge {
         // do vector recall
         const memory = [];
         for (const provider of this.longterm) {
-            memory.push(await provider.recall(line));
+            const mem = await provider.recall(line);
+            if (mem != null && mem.trim().length !== 0) {
+                memory.push(mem);
+            }
         }
 
         // format header
@@ -154,7 +162,7 @@ export class ServitorBridge {
             format(this.agent.extra, formatparams) + "\n\n" : "";
         const top = format(CONTEXT_TEMPLATE, {
             prompt: format(this.baseprompt.trim(), formatparams),
-            injected: "\n\n\n" + memory.join("\n\n\n"),
+            injected: memory.length > 0 ? "\n\n\n" + memory.join("\n\n\n") : "",
             header: format(header + suffix, {
                 char: this.agent.name,
                 name: this.agent.name,
@@ -163,7 +171,8 @@ export class ServitorBridge {
                 date: new Date().toDateString()
             })
         });
-        const input = this.formatter.formatInputLine(this.agent.name);
+        const input = this.formatter.formatInputLine(this.agent.name, null, thought) +
+            (trail != null && !trail.startsWith(" ") ? " " : "") + trail;
         const toptoks = await this.inference.tokenize(top + input);
 
         if (this.args.max_new_tokens == null) {
@@ -175,21 +184,38 @@ export class ServitorBridge {
         // build full body
         const window = await this.shortterm.recall(line,
             TOKEN_LIMIT - (toptoks.length + this.args.max_new_tokens));
-        const context = top + window + input;
+        return top + window + input;
+    }
+
+    async infer(line: ServitorChatLine): Promise<ServitorChatLine> {
+        // assemble initial context
+        var context = await this.assembleContext(line);
+
+        // get positional repeat inhibits
+        const positional_repeat_inhibit = (this.formatter.options.internal_monologue ? [
+            // TODO: make this configurable somehow
+            [1723], // ')' (don't allow immediately closing the thought)
+            [376], // '"' (inhibit "planning" by simply writing what is going to be spoken aloud)
+            [334], // '*' (don't allow action messages inside of the thought area)
+        ] : []);
 
         // do inference
         const args: Partial<ServitorInferenceArguments> = Object.assign({}, this.args, {
             prompt: context,
-            // TODO: make this configurable somehow
-            positional_repeat_inhibit: [
-                [1723] // " )"
-            ],
+            positional_repeat_inhibit,
             stopping_strings: (this.args.stopping_strings || [])
                 // keep the model from starting a new message as another user
                 .concat(this.shortterm.getRoles(line.channel.id)
+                    // sometimes hallucinated usernames
+                    .concat([
+                        "user", "human",
+                        "User", "Human",
+                        "USER", "HUMAN"
+                    ])
                     .map(x => "\n" + x))
         });
-        const result = await this.inference.infer(args);
+        var result = await this.inference.infer(args);
+        const results = [result];
 
         // clean up
         var { thought, content } = this.formatter.cleanInference(result.text);
@@ -197,9 +223,32 @@ export class ServitorBridge {
         // if no content was received, try to infer more
         if (content.trim().length === 0) {
             console.debug("did not get any message content, trying again");
-            args.prompt = top + window + this.formatter.formatInputLine(this.agent.name, null, thought);
-            const result2 = await this.inference.infer(args);
-            content = result2.text;
+            args.prompt = await this.assembleContext(line, thought);
+            result = await this.inference.infer(args);
+            content = result.text;
+            results.push(result);
+        }
+
+        // if we didnt stop due to eos/stop strings, try to infer more
+        for (
+            var i = 1;
+            (
+                i < this.maxtries &&
+                result.stop_reason === ServitorInferenceStopReason.TokenLimit &&
+                result.fragments != null
+            );
+            i++
+        ) {
+            console.debug(`stopped due to token limit (${result.stop_reason}), trying again (${i}/${this.maxtries})`);
+            // infer next chunk
+            args.prompt = await this.assembleContext(line, thought, content);
+            result = await this.inference.infer(args);
+            // determine if there is a leading space on the first token
+            const space = result.fragments[0][0] === " " ? " " : "";
+            // append to content
+            content += space + result.text;
+            // push the result so we can tally up tokens after
+            results.push(result);
         }
 
         // eugh
@@ -207,6 +256,7 @@ export class ServitorBridge {
             // malformation: kill trailing closing parentheses
             .replace(/(^[^\(]+?[\w.?!])\)/, "$1");
 
+        // decapitalize if supposed to
         if (this.agent.decapitalize) {
             thought = decapitalize(thought);
             content = decapitalize(content);
@@ -215,7 +265,7 @@ export class ServitorBridge {
         return spoof(
             this.agent.name,
             this.formatter.composeWithThought(content, thought),
-            result.tokens,
+            results.map(x => x.tokens).flat(),
             true
         );
     }
